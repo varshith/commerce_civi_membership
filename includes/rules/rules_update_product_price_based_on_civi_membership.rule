@@ -1,0 +1,40 @@
+<?php
+
+$rule = '{ "rules_update_product_price_based_on_civi_membership" : {
+    "LABEL" : "Update product price based on CiVi Membership",
+    "PLUGIN" : "reaction rule",
+    "OWNER" : "rules",
+    "TAGS" : [ "commerce_civi_membership" ],
+    "REQUIRES" : [ "rules", "commerce_line_item", "commerce_product_reference" ],
+    "ON" : { "commerce_product_calculate_sell_price" : [] },
+    "IF" : [
+      { "entity_has_field" : {
+          "entity" : [ "commerce-line-item" ],
+          "field" : "commerce_civi_membership"
+        }
+      },
+      { "data_is" : {
+          "data" : [ "commerce-line-item:commerce-civi-membership:minimum-fee" ],
+          "op" : "\u003E",
+          "value" : "0"
+        }
+      }
+    ],
+    "DO" : [
+      { "commerce_line_item_unit_price_amount" : {
+          "commerce_line_item" : [ "commerce_line_item" ],
+          "amount" : [ "commerce-line-item:commerce-civi-membership:minimum-fee" ],
+          "component_name" : "base_price",
+          "round_mode" : "0"
+        }
+      },
+      { "commerce_line_item_unit_price_multiply" : {
+          "commerce_line_item" : [ "commerce_line_item" ],
+          "amount" : "100",
+          "component_name" : "base_price",
+          "round_mode" : "0"
+        }
+      }
+    ]
+  }
+}';

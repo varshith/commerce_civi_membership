@@ -1,0 +1,57 @@
+<?php
+
+$rule = '{ "rules_line_items_to_civimemberships" : {
+    "LABEL" : "Line Item to CiViMembership",
+    "PLUGIN" : "rule set",
+    "OWNER" : "rules",
+    "TAGS" : [ "commerce_civi_membership" ],
+    "REQUIRES" : [ "rules", "commerce_civi_membership" ],
+    "USES VARIABLES" : { "line_item" : { "label" : "Line Item", "type" : "commerce_line_item" } },
+    "RULES" : [
+      { "RULE" : {
+          "PROVIDE" : {
+            "civi_formatted_date" : { "civi_formatted_date" : "CiVi formatted date(text)" },
+            "entity_created" : { "entity_created" : "Created entity" }
+          },
+          "IF" : [
+            { "entity_has_field" : { "entity" : [ "line-item" ], "field" : "commerce_civi_membership" } },
+            { "entity_has_field" : { "entity" : [ "line-item" ], "field" : "commerce_civi_mem_start_date" } }
+          ],
+          "DO" : [
+            { "commerce_civi_membership_rules_action_format_date" : {
+                "USING" : { "date" : [ "line-item:commerce-civi-mem-start-date" ] },
+                "PROVIDE" : { "civi_formatted_date" : { "civi_formatted_date" : "CiVi formatted date(text)" } }
+              }
+            },
+            { "entity_create" : {
+                "USING" : {
+                  "type" : "civicrm_membership",
+                  "param_membership_type_id" : [ "line-item:commerce-civi-membership:id" ],
+                  "param_contact_id" : [ "line-item:order:owner:civicrm-contact:id" ],
+                  "param_civicrm_contribution" : [ "" ],
+                  "param_join_date" : [ "" ],
+                  "param_status_id" : "2",
+                  "param_is_override" : [ "" ],
+                  "param_owner_membership_id" : [ "" ],
+                  "param_max_related" : [ "" ],
+                  "param_contribution_recur_id" : [ "" ],
+                  "param_id" : [ "" ],
+                  "param_start_date" : [ "civi-formatted-date" ],
+                  "param_end_date" : [ "" ],
+                  "param_source" : [ "" ],
+                  "param_is_test" : [ "" ],
+                  "param_is_pay_later" : [ "" ],
+                  "param_campaign_id" : [ "" ],
+                  "param_skipStatusCal" : [ "" ],
+                  "param_num_terms" : [ "" ]
+                },
+                "PROVIDE" : { "entity_created" : { "entity_created" : "Created entity" } }
+              }
+            }
+          ],
+          "LABEL" : "Line Items to CiViMemberships"
+        }
+      }
+    ]
+  }
+}';

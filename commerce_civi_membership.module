@@ -1,0 +1,156 @@
+<?php
+
+
+/**
+ * Implementation of hook_views_api().
+ */
+function commerce_civi_membership_views_api() {
+    return array(
+        'api' => 3.0,
+        'path' => drupal_get_path('module', 'commerce_civi_membership').'/includes/views'
+    );
+}
+
+/**
+ * Implements hook_commerce_line_item_type_info(). *
+ */
+function commerce_civi_membership_commerce_line_item_type_info() {
+    $line_item_types['civi_membership'] = array(
+        'name' => t('CiViCRM Membership'),
+        'description' => t('A line item type to add a selected CiViCRM membership to the user who purchases this product.'),
+        'product' => TRUE,
+        'add_form_submit_value' => t('Add Membership'),
+        'callbacks' => array(
+            'configuration' => 'commerce_civi_membership_line_item_configuration',
+            'title' => 'commerce_civi_membership_line_item_title',
+            'add_form' => 'commerce_product_line_item_add_form',
+            'add_form_submit' => 'commerce_product_line_item_add_form_submit',
+        ),
+    );
+    return $line_item_types;
+}
+
+/**
+ * Configure the line item with additional fields
+ *
+ * @param $line_item_type
+ *   The info array of the line item type being configured.
+ *
+ * @see commerce_product_line_item_configuration()
+ */
+function commerce_civi_membership_line_item_configuration($line_item_type) {
+    // calling commerce product line item config for default field instances
+    commerce_product_line_item_configuration($line_item_type);
+
+    $type = $line_item_type['type'];
+
+    $field_name = 'commerce_civi_membership';
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('commerce_line_item', $field_name, $type);
+
+    if (empty($field)) {
+        $field = array(
+            'field_name' => $field_name,
+            'type' => 'entityreference',
+            'settings' => array(
+                'target_type' => 'civicrm_membership_type',
+                'handler' => 'views',
+                'handler_settings' => array(
+                    'view' => array(
+                        'view_name' => 'civicrm_membership_types',
+                        'display_name' => 'entityreference_civi_membership',
+                        'args' => array(),
+                    ),
+                    'behaviors' => array(
+                        'views-select-list' => array(
+                            'status' => 0
+                        )
+                    )
+                ),
+            ),
+            'cardinality' => 1,
+            'translatable' => FALSE,
+        );
+        field_create_field($field);
+    }
+
+
+    if (empty($instance)) {
+        $instance = array(
+            'field_name' => $field_name,
+            'entity_type' => 'commerce_line_item',
+            'bundle' => $type,
+            'label' => 'CiViCRM Membership',
+            'required' => true,
+            'commerce_cart_settings' => array(
+                'field_access' => 1
+            ),
+            'widget' => array(
+                'type' => 'options_select'
+            ),
+        );
+        field_create_instance($instance);
+    }
+
+    $field_name = 'commerce_civi_mem_start_date';
+    $field = field_info_field($field_name);
+    $instance = field_info_instance('commerce_line_item', $field_name, $type);
+
+    if (empty($field)) {
+        $field = array(
+            'field_name' => $field_name,
+            'type' => 'datetime',
+            'module' => 'date',
+            'settings' => array(
+                'granularity' => array(
+                    'month' => 'month',
+                    'day' => 'day',
+                    'year' => 'year',
+                    'hour' => 0,
+                    'minute' => 0,
+                    'second' => 0
+                )
+            ),
+            'cardinality' => 1,
+            'translatable' => FALSE,
+        );
+        field_create_field($field);
+    }
+
+
+    if (empty($instance)) {
+        $instance = array(
+            'field_name' => $field_name,
+            'entity_type' => 'commerce_line_item',
+            'bundle' => $type,
+            'label' => 'CiViCRM Membership Start Date',
+            'required' => true,
+            'commerce_cart_settings' => array(
+                'field_access' => 1
+            ),
+            'widget' => array(
+                'type' => 'date_popup',
+                'settings' => array(
+                    'year_range' => '0:+3',
+                )
+            ),
+        );
+        field_create_instance($instance);
+    }
+}
+
+/**
+ * Returns a title for this line item.
+ */
+function commerce_civi_membership_line_item_title($line_item) {
+    return(t('Line Item with CiViCRM Membership item'));
+}
+
+function commerce_civi_membership_date_popup_process_alter(&$element, &$form_state, &$context) {
+    if($element['#field']['field_name'] == 'commerce_civi_mem_start_date') {
+        $element['#datepicker_options'] = array(
+            'minDate' => "+0D",
+        );
+        $element['date'] = date_popup_process_date_part($element);
+    }
+}

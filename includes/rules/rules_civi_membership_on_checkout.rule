@@ -1,0 +1,21 @@
+<?php
+
+$rule = '{ "rules_civi_membership_on_checkout" : {
+    "LABEL" : "CiVi Membership on Checkout",
+    "PLUGIN" : "reaction rule",
+    "OWNER" : "rules",
+    "TAGS" : [ "commerce_civi_membership" ],
+    "REQUIRES" : [ "rules", "commerce_checkout" ],
+    "ON" : { "commerce_checkout_complete" : [] },
+    "DO" : [
+      { "LOOP" : {
+          "USING" : { "list" : [ "commerce-order:commerce-line-items" ] },
+          "ITEM" : { "list_item" : "Current list item" },
+          "DO" : [
+            { "component_rules_line_items_to_civimemberships" : { "line_item" : [ "list-item" ] } }
+          ]
+        }
+      }
+    ]
+  }
+}';
